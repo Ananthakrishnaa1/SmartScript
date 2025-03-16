@@ -1,5 +1,10 @@
 streamlit
 langchain
+langchain-community
+langchain-core
+langchain_pinecone
 langchain-ollama
 pydantic-settings
 python-dotenv
+pinecone
+ollama
