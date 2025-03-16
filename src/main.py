@@ -9,6 +9,41 @@ from utils.moderator import moderate_prompt
 from config.settings import settings
 from langchain_ollama import OllamaEmbeddings
 
+# --- Authentication ---
+def check_password():
+    """Returns `True` if the user had a correct password."""
+
+    def password_entered():
+        """Checks whether a password entered by the user is correct."""
+        if (
+            st.session_state["username"] == settings.USERNAME
+            and st.session_state["password"] == settings.PASSWORD
+        ):
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]  # don't store username + password
+            del st.session_state["username"]
+        else:
+            st.session_state["password_correct"] = False
+
+    if "password_correct" not in st.session_state:
+        st.session_state["password_correct"] = False
+
+    if not st.session_state["password_correct"]:
+        # Show inputs for username + password.
+        st.text_input(label="Username", key="username")
+        st.text_input(
+            label="Password",
+            type="password",
+            key="password",
+            on_change=password_entered,
+        )
+        if st.session_state["password_correct"] is False:
+            st.error("😕 User not known or password incorrect")
+        # Halt execution if the password not correct.
+        st.stop()
+
+    return True
+
 def initialize_retrieval_chain():
     """Initialize the retrieval chain with LLM, embeddings, and vector store"""
     # Initialize LLM
@@ -29,6 +64,9 @@ def initialize_retrieval_chain():
     return RetrievalChain(llm, retriever)
 
 def main():
+    if not check_password():
+        return
+    
     initialize_cache()
     initialize_ui()
     
@@ -42,6 +80,10 @@ def main():
             "role": "ai",
             "content": "Hi! I'm your HR Assistant. How can I help you today? 📚"
         }]
+    
+    # Initialize communication log
+    if "communication_log" not in st.session_state:
+        st.session_state.communication_log = []
 
     # Display chat history
     display_chat_history(st.session_state.message_log)
@@ -70,11 +112,19 @@ def main():
             response_placeholder.markdown("Searching documents...", unsafe_allow_html=True)
             
             # Get response from retrieval chain
-            response = st.session_state.retrieval_chain.get_response(user_query)
+            retrieval_chain = st.session_state.retrieval_chain
+            response = retrieval_chain.get_response(user_query)
             
             # Update display and message history
             response_placeholder.markdown(response)
             st.session_state.message_log.append({"role": "ai", "content": response})
+            
+            # Capture communication details
+            st.session_state.communication_log.append({
+                "user_query": user_query,
+                "response": response,
+                "memory": retrieval_chain.memory.load_memory_variables({}) # Capture memory
+            })
 
 if __name__ == "__main__":
     main()

@@ -7,6 +7,8 @@ class Settings(BaseSettings):
     TEMPERATURE: float = 0.3                         # Default value
     PINECONE_API_KEY: str
     PINECONE_INDEX_NAME: str = "test"               # Default value
+    USERNAME: str = "admin"  # Add username
+    PASSWORD: str = "password"  # Add password
     
     class Config:
         # Look for .env file in project root

@@ -1,11 +1,15 @@
 from langchain.prompts import PromptTemplate
 
-REPHRASE_TEMPLATE = """Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question.
+REPHRASE_TEMPLATE = """You are tasked with rephrasing a user question to ensure it aligns with stored data for accurate retrieval. If the question is a follow-up, use the provided conversation context to rephrase it into a standalone question while preserving the original intent.
+If user says we or us or we're, replace it with employee or employees or HR respectively.
 
 Chat History:
 {chat_history}
-Follow Up Input: {question}
-Standalone Question:"""
+
+Original Question: {question}
+
+Rephrased Standalone Question:"""
+
 
 RESPONSE_TEMPLATE = """You are an HR Assistant having a conversation with an employee. Using the provided context, answer the employee's question to the best of your ability using the resources provided.
 
